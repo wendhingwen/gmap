@@ -1,0 +1,144 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Bike</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+
+<body>
+
+    <div class="row">
+        <div class="col-7">
+            <div id="map" style="width:800px;height:700px"></div>
+        </div>
+        <div class="col">
+            <div class="row">
+                <div class="form-group">
+                    <p>旅館</p>
+                    <select id="hotel" class="form-control" style="width:300px;" multiple></select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    <p>景點</p>
+                    <select id="place" class="form-control" style="width:300px;height: 400px;" multiple></select>
+                </div>
+            </div>
+            <div class="row">
+                <button type="button" id="create" class="btn btn-light">規劃路線</button>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD8_leVd8LRKxvNf0wUTOpr8J8PP6P5GTI"></script>
+
+    <script>
+        $(function () {
+            var directionsService = new google.maps.DirectionsService();
+            var directionsDisplay = new google.maps.DirectionsRenderer();
+
+            // 初始化地圖
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 16,
+                center: { lat: 24.817134, lng:120.967168}
+            });
+
+            // 放置路線圖層
+            directionsDisplay.setMap(map);
+
+            document.getElementById('create').addEventListener('click', function () {
+                calculateAndDisplayRoute(directionsService, directionsDisplay);
+            });
+
+            function calculateAndDisplayRoute(directionsService, directionsDisplay) {
+                var waypts = [];
+                var placeArray = document.getElementById('place');
+                for (var i = 0; i < placeArray.length; i++) {
+                    if (placeArray.options[i].selected) {
+                        waypts.push({
+                            location: placeArray[i].value,
+                            stopover: true
+                        });
+                    }
+                }
+                var hotelArray = document.getElementById('hotel');
+                for (var i = 0; i < hotelArray .length; i++) {
+                    if (hotelArray .options[i].selected) {
+                        waypts.push({
+                            location: hotelArray [i].value,
+                            stopover: true
+                        });
+                    }
+                }
+                directionsService.route({
+                    origin: document.getElementById('hotel').value,
+                    destination: document.getElementById('place').value,
+                    //waypoints: waypts,
+                   // optimizeWaypoints: true,
+                    travelMode: 'DRIVING'
+                }, function (response, status) {
+                    if (status === 'OK') {
+                        directionsDisplay.setDirections(response);
+                       
+                    } else {
+                        window.alert('Directions request failed due to ' + status);
+                    }
+                });
+            }
+                $.ajax({
+                    type: "GET",
+                    url: "http://opendata.hccg.gov.tw/dataset/39ee314b-7ce7-4265-a6b5-b57f42392da8/resource/6a3a5f61-5383-419d-a94c-df710071a51e/download/20180321131425502.json",
+
+                }).done(function (data, xhr) {
+                    console.log(data);
+                    for (var item of data) {
+                        var option = document.createElement("option");
+                        option.innerHTML = item.旅館名稱;
+                        document.getElementById("hotel").appendChild(option);
+                        var marker = new google.maps.Marker({
+                            position: {
+                                lat: parseFloat(item.緯度),
+                                lng: parseFloat(item.經度)
+                            },
+                            map: map,
+                            
+                            title: item.旅館名稱
+                        });
+                    }
+                })
+
+                $.ajax({
+                    type: "GET",
+                    url: "http://opendata.hccg.gov.tw/dataset/7ea7e303-df62-4fbe-a84f-99bdd724b577/resource/c15a9c5f-f6cb-4da5-b8a6-5e7bc4c9eb08/download/20180501160733080.json",
+
+                }).done(function (data, xhr) {
+                    console.log(data);
+                    for (var item of data) {
+                        var option = document.createElement("option");
+                        option.innerHTML = item.古蹟名稱;
+                        document.getElementById("place").appendChild(option);
+                        var marker = new google.maps.Marker({
+                            position: {
+                                lat: parseFloat(item.緯度),
+                                lng: parseFloat(item.經度)
+                            },
+                            map: map,
+                            title: item.古蹟名稱
+                        });
+                    }
+                })
+            })
+    </script>
+
+
+</body>
+
+</html>
